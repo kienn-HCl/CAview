@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"flag"
 	"log"
 	"os"
 	"sync"
@@ -67,14 +67,16 @@ func (r *row) display(rule uint8, width int) {
 }
 
 func main() {
-	width, height, err := term.GetSize(int(os.Stdin.Fd()))
+	width, _, err := term.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(width, height)
+
+	rule := flag.Uint("rule", 90, "cellular automaton's rule(0~255)")
+	flag.Parse()
 
 	line := newRow(width)
 	line[width/2] = true
 
-	line.display(90, width)
+	line.display(uint8(*rule), width)
 }
