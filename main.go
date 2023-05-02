@@ -4,12 +4,20 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"golang.org/x/term"
 )
 
-func printRow(row []bool) {
-	for _, i := range row {
+type row []bool
+
+func newRow(width int) row {
+	newRow := make([]bool, width, width)
+	return newRow
+}
+
+func (r *row) printRow() {
+	for _, i := range *r {
 		if i {
 			print("#")
 		} else {
@@ -18,28 +26,44 @@ func printRow(row []bool) {
 	}
 }
 
-func ruleResult(cells [3]bool, rule int8) bool {
-    n := 0
-    for i:=2; i>=0; i-- {
-        n = n << 1
-        if cells[i] {
-            n+=1
-        } 
-    }
+func (r *row) ruleResult(rule uint8, cells [3]bool) bool {
+	n := 0
+	for i := 2; i >= 0; i-- {
+		n = n << 1
+		if cells[i] {
+			n += 1
+		}
+	}
 
-    return (rule >> n) & 0b1 == 1
+	return (rule>>n)&0b1 == 1
 }
 
-func updateRow(row []bool, rule int8, width int) []bool {
-    update := make([]bool, width, width)
+func (r *row) updateRow(rule uint8, width int) row {
+	update := newRow(width)
 
-    update[0] = ruleResult([3]bool{row[width-1],row[0],row[1]}, rule)
-    update[width-1] = ruleResult([3]bool{row[width-2],row[width-1],row[0]}, rule)
-    for i:=1; i<width-1; i++ {
-        update[i] = ruleResult([3]bool(row[i-1:i+2]), rule)
-    }
+	update[0] = r.ruleResult(rule, [3]bool{(*r)[width-1], (*r)[0], (*r)[1]})
+	update[width-1] = r.ruleResult(rule, [3]bool{(*r)[width-2], (*r)[width-1], (*r)[0]})
 
-    return update
+	var wg sync.WaitGroup
+	for i := 1; i < width-1; i++ {
+		i := i
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			update[i] = r.ruleResult(rule, [3]bool((*r)[i-1:i+2]))
+		}()
+	}
+	wg.Wait()
+
+	return update
+}
+
+func (r *row) display(rule uint8, width int) {
+	r.printRow()
+	for i := 0; i < (width / 2); i++ {
+		*r = r.updateRow(rule, width)
+		r.printRow()
+	}
 }
 
 func main() {
@@ -49,12 +73,8 @@ func main() {
 	}
 	fmt.Println(width, height)
 
-	row := make([]bool, width, width)
-	row[width/2] = true
+	line := newRow(width)
+	line[width/2] = true
 
-    printRow(row)
-    for i:= 0; i<(width/2); i++ {
-        row = updateRow(row, 90, width)
-        printRow(row)
-    }
+	line.display(90, width)
 }
