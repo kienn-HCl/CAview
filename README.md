@@ -2,10 +2,24 @@
 
 1次元セルオートマトンをターミナル上に描画するプログラム。
 
+## インストール
+
+### バイナリ
+[release](https://github.com/kienn-HCl/CAview/releases/)からダウンロードする。
+
+### ビルド
+自分でビルドする。
+
+```shell
+$ git clone https://github.com/kienn-HCl/CAview.git
+$ cd CAview
+$ go build
+```
+
 ## 使い方
 
 ```shell
-❯ ./CAview --rule 30
+$ ./CAview --rule 30
                                        #                                      
                                       ###                                     
                                      #  ##                                    
