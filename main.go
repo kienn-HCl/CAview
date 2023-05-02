@@ -38,7 +38,8 @@ func (r *row) ruleResult(rule uint8, cells [3]bool) bool {
 	return (rule>>n)&0b1 == 1
 }
 
-func (r *row) updateRow(rule uint8, width int) row {
+func (r *row) updateRow(rule uint8) row {
+	width := len(*r)
 	update := newRow(width)
 
 	update[0] = r.ruleResult(rule, [3]bool{(*r)[width-1], (*r)[0], (*r)[1]})
@@ -58,10 +59,11 @@ func (r *row) updateRow(rule uint8, width int) row {
 	return update
 }
 
-func (r *row) display(rule uint8, width int) {
+func (r *row) display(rule uint8) {
+	width := len(*r)
 	r.printRow()
 	for i := 0; i < (width / 2); i++ {
-		*r = r.updateRow(rule, width)
+		*r = r.updateRow(rule)
 		r.printRow()
 	}
 }
@@ -78,5 +80,5 @@ func main() {
 	line := newRow(width)
 	line[width/2] = true
 
-	line.display(uint8(*rule), width)
+	line.display(uint8(*rule))
 }
